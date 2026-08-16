@@ -10,7 +10,10 @@ import { AVFLOW_IDENTITY, jobName } from './shared';
 /**
  * Simultaneous interpretation as an extra audio track in the same room.
  *
- *   livekit(room, audio) → translate → livekit sink (translated voice + text)
+ *   livekit(room, audio) → audio_mixer → translate → livekit sink
+ *
+ * `translate` is a 1:1 node, so the multi-participant room audio has to be
+ * folded into one stream first — the mixer is what makes the graph valid.
  *
  * `translate` emits speech in the target language plus `avflow.translateText`
  * data events, so publishing it back into the room gives listeners a channel
@@ -53,9 +56,15 @@ export async function buildLiveTranslateJob(opts: {
     ],
     nodes: [
       {
+        name: 'floor',
+        type: 'audio_mixer',
+        inputs: ['room'],
+        config: {},
+      },
+      {
         name: 'interpreter',
         type: 'translate',
-        inputs: ['room'],
+        inputs: ['floor'],
         config: { targetLanguage: opts.targetLanguage },
       },
     ],

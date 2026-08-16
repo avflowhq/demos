@@ -52,8 +52,11 @@ export function MeetingClient({ ready }: { ready: { s3: boolean; openai: boolean
         <Callout title="How the layout behaves">
           <code className="text-slate-200">video_mixer</code> runs in{' '}
           <code className="text-slate-200">speaker</code> mode with{' '}
-          <code className="text-slate-200">mainPriority: &quot;screen_share&quot;</code>, so sharing
-          your screen promotes it to the main region and everyone else drops into the thumbnail rail.
+          <code className="text-slate-200">
+            mainPriority: [&quot;screen_share&quot;, &quot;active_speaker&quot;]
+          </code>
+          , so sharing your screen promotes it to the main region; otherwise the loudest speaker
+          holds it. Everyone else drops into the thumbnail rail.
         </Callout>
       </div>
 

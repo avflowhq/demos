@@ -51,7 +51,7 @@ export async function buildMeetingRecordingJob(opts: {
             mode: 'speaker',
             common: { borderRadius: 12 },
             speaker: {
-              mainPriority: 'screen_share',
+              mainPriority: ['screen_share', 'active_speaker'],
               mainRatio: 0.76,
               maxThumbnails: 4,
               thumbnailPosition: 'right',

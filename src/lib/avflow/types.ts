@@ -94,7 +94,8 @@ export type Layout = {
   common?: { borderRadius?: number; nameLabel?: Record<string, unknown> };
   grid?: { maxColumns?: number; gap?: number; fit?: 'cover' | 'contain' | 'fill' };
   speaker?: {
-    mainPriority?: 'screen_share' | 'active_speaker' | MatchSource;
+    /** Ordered rules; first match wins. Listing 'active_speaker' requires an audio_mixer in the job. */
+    mainPriority?: Array<'screen_share' | 'active_speaker' | MatchSource>;
     mainRatio?: number;
     maxThumbnails?: number;
     thumbnailPosition?: 'top' | 'bottom' | 'left' | 'right';
