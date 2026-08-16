@@ -1,0 +1,58 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #030712;
+  --color-ink-raised: #0a1224;
+  --color-surface: #0f172a;
+  --color-line: #1e293b;
+  --color-body: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-accent: #38bdf8;
+  --color-accent-deep: #6366f1;
+
+  --font-sans:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Helvetica Neue', Arial,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+}
+
+@utility page-shell {
+  margin-inline: auto;
+  width: min(100% - 2rem, 72rem);
+}
+
+/*
+ * The caption overlay is a full-bleed capture target, not a page people browse.
+ * These rules are intentionally unlayered so they win against the utility
+ * classes the shared layout applies.
+ */
+body:has(canvas#stage) {
+  overflow: hidden;
+  background-color: #000;
+}
+
+body:has(canvas#stage) > header,
+body:has(canvas#stage) > footer {
+  display: none;
+}
+
+body:has(canvas#stage) > main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
