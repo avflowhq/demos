@@ -5,9 +5,17 @@ export type DemoId =
   | 'cohost'
   | 'voice-room'
   | 'live-translate'
-  | 'voice-agent';
+  | 'voice-agent'
+  | 'moderation';
 
-export type EnvRequirement = 'avflow' | 'livekit' | 'rtmp' | 's3' | 'openai' | 'publicBaseUrl';
+export type EnvRequirement =
+  | 'avflow'
+  | 'livekit'
+  | 'rtmp'
+  | 's3'
+  | 'openai'
+  | 'publicBaseUrl'
+  | 'moderationUrl';
 
 export type DemoMeta = {
   id: DemoId;
@@ -117,7 +125,32 @@ export const DEMOS: DemoMeta[] = [
       { label: 'Wiring & DAG', href: `${DOCS}/concepts/wiring/` },
     ],
   },
+  {
+    id: 'moderation',
+    href: '/moderation',
+    title: 'Per-participant moderation',
+    tagline: 'One jpeg stream and one audio socket per participant — nothing is mixed.',
+    scenario:
+      'Trust and safety on a live social product, where the answer has to name a participant rather than describe a composite.',
+    pipeline: {
+      sources: ['livekit'],
+      nodes: ['audio_resample (16 kHz mono)'],
+      sinks: ['image → S3', 'websocket'],
+    },
+    requires: ['avflow', 'livekit', 's3', 'openai', 'moderationUrl'],
+    docs: [
+      { label: 'image sink', href: `${DOCS}/sinks/image/` },
+      { label: 'websocket sink', href: `${DOCS}/sinks/websocket/` },
+      { label: 'Wiring & DAG', href: `${DOCS}/concepts/wiring/` },
+    ],
+  },
 ];
+
+/** Spelled out for the headline, so adding a demo does not leave "Five" behind. */
+export const DEMO_COUNT_TITLE =
+  ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'][
+    DEMOS.length
+  ] ?? String(DEMOS.length);
 
 export function demoById(id: DemoId): DemoMeta {
   const found = DEMOS.find((d) => d.id === id);
@@ -132,4 +165,5 @@ export const ENV_LABELS: Record<EnvRequirement, string> = {
   s3: 'S3_BUCKET / credentials',
   openai: 'OPENAI_API_KEY',
   publicBaseUrl: 'PUBLIC_BASE_URL (tunnel)',
+  moderationUrl: 'MODERATION_WS_URL (tunnel)',
 };

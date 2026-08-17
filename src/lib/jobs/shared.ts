@@ -5,11 +5,13 @@ import { serverEnv } from '@/lib/env';
 export { jobName, roomSlug } from '@/lib/naming';
 
 /**
- * Identities AVFlow sinks use when they publish back into a room.
+ * Identities AVFlow joins a room under.
  *
- * These are excluded from the matching `livekit` source's `select` so a node
- * never consumes its own output — an agent would otherwise hear itself speak
- * and a translator would translate its own translation.
+ * The ones belonging to a sink that publishes back into the room are also
+ * excluded from that job's own `livekit` source `select`, so a node never
+ * consumes its own output — an agent would otherwise hear itself speak and a
+ * translator would translate its own translation. `moderator` is the exception:
+ * it only subscribes, so there is nothing to exclude.
  */
 export const AVFLOW_IDENTITY = {
   recorder: 'avflow-recorder',
@@ -18,6 +20,7 @@ export const AVFLOW_IDENTITY = {
   translator: 'avflow-translator',
   cohost: 'avflow-cohost',
   overlay: 'avflow-overlay',
+  moderator: 'avflow-moderator',
 } as const;
 
 /**
@@ -51,6 +54,8 @@ export function s3StorageConfig(pathSuffix: string) {
     accessKeyId: s3.accessKeyId,
     secretAccessKey: s3.secretAccessKey,
     ...(s3.endpoint ? { endpoint: s3.endpoint, forcePathStyle: true } : {}),
-    ...(prefix ? { pathPrefix: prefix } : {}),
+    // The engine reads `prefix`. Sending `pathPrefix` is silently dropped, which
+    // lands every object at the bucket root.
+    ...(prefix ? { prefix } : {}),
   };
 }

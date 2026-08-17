@@ -10,6 +10,7 @@ import { TRANSLATE_LANGUAGES } from '@/lib/languages';
 import { buildCohostJob } from './cohost';
 import { buildLiveTranslateJob } from './liveTranslate';
 import { buildMeetingRecordingJob } from './meetingRecording';
+import { buildModerationJob } from './moderation';
 import { buildVoiceAgentJob } from './voiceAgent';
 import { buildVoiceRoomJob } from './voiceRoom';
 
@@ -19,6 +20,7 @@ const DEMO_IDS = new Set<DemoId>([
   'voice-room',
   'live-translate',
   'voice-agent',
+  'moderation',
 ]);
 
 export function parseDemoId(value: unknown): DemoId {
@@ -60,6 +62,16 @@ export function buildDemoJob(demo: DemoId, params: Record<string, unknown>): Pro
         throw new Error(`\`targetLanguage\` must be one of ${TRANSLATE_LANGUAGES.map((l) => l.code).join(', ')}`);
       }
       return buildLiveTranslateJob({ room, targetLanguage });
+    }
+
+    case 'moderation': {
+      const intervalSec = Number(params.intervalSec);
+      return buildModerationJob({
+        room,
+        intervalSec: Number.isFinite(intervalSec) && intervalSec > 0 ? intervalSec : undefined,
+        audioUrl: requiredString(params.audioUrl, 'audioUrl'),
+        audioToken: optionalString(params.audioToken),
+      });
     }
 
     case 'voice-agent':

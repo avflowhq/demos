@@ -53,6 +53,19 @@ export const serverEnv = {
   },
 
   /**
+   * Where AVFlow opens one WebSocket per participant. This is the moderation
+   * server in `server/moderation.ts`, which runs as its own process — a Next
+   * route handler cannot accept a WebSocket upgrade — so running locally means
+   * pointing this at a tunnel.
+   */
+  moderation() {
+    return {
+      wsUrl: required('MODERATION_WS_URL'),
+      token: optional('MODERATION_TOKEN'),
+    };
+  },
+
+  /**
    * Optional bring-your-own-key overrides. When unset the demos omit
    * `provider`/`providerConfig` entirely so AVFlow uses platform-managed
    * credentials — supplying only one of the two is rejected at submit time.
@@ -80,5 +93,6 @@ export function envReadiness() {
     s3: has('S3_BUCKET') && has('S3_ACCESS_KEY_ID') && has('S3_SECRET_ACCESS_KEY'),
     openai: has('OPENAI_API_KEY'),
     publicBaseUrl: has('PUBLIC_BASE_URL'),
+    moderationUrl: has('MODERATION_WS_URL'),
   };
 }

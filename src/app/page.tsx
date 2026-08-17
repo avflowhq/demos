@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { PipelineFlow } from '@/components/PipelineFlow';
 import { Card, Chip } from '@/components/ui';
-import { DEMOS, ENV_LABELS } from '@/lib/demos';
+import { DEMOS, DEMO_COUNT_TITLE, ENV_LABELS } from '@/lib/demos';
 import { envReadiness } from '@/lib/env';
 
 /** Reads env on every request so the readiness chips reflect the running process. */
@@ -18,7 +18,7 @@ export default function HomePage() {
           Real scenarios, real Job JSON
         </p>
         <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-tight sm:text-5xl">
-          Five things people actually build on AVFlow
+          {DEMO_COUNT_TITLE} things people actually build on AVFlow
         </h1>
         <p className="max-w-2xl leading-relaxed text-muted">
           Each demo joins a live room in your browser, submits a real AVFlow Job, and shows you the

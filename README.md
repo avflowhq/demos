@@ -1,6 +1,6 @@
 # AVFlow demos
 
-Five things people actually build on [AVFlow](https://avflow.dev), as one runnable
+Six things people actually build on [AVFlow](https://avflow.dev), as one runnable
 Next.js app. Every demo joins a live LiveKit room in your browser, submits a real
 Job to the AVFlow API, and shows you the JSON it sent.
 
@@ -14,6 +14,7 @@ the real workaround instead of pretending — that is the most useful part.
 | [Captioned vertical voice room](#3-captioned-vertical-voice-room) | An audio-only room as 9:16 video with visible live captions | RTMP, tunnel |
 | [Live interpretation channel](#4-live-interpretation-channel) | A translated voice track published back into the room | — |
 | [AI co-host in the room](#5-ai-co-host-in-the-room) | A speech-to-speech agent that listens, answers, and can be interrupted | — |
+| [Per-participant moderation](#6-per-participant-moderation) | One image stream and one audio socket per participant, with nothing mixed | S3, OpenAI, tunnel |
 
 ---
 
@@ -209,6 +210,65 @@ Two loop guards matter:
 
 Drop either one and the agent talks itself into an infinite conversation.
 
+## 6. Per-participant moderation
+
+**Code:** [`src/lib/jobs/moderation.ts`](src/lib/jobs/moderation.ts) ·
+[`src/app/moderation`](src/app/moderation) ·
+[`server/moderation.ts`](server/moderation.ts)
+
+```
+livekit(room) ─┬→ image ──────────────────────→ S3 (one jpeg per participant)
+               └→ audio_resample → websocket ─→ your service (one socket each)
+```
+
+The only Job here that never mixes, because the question it answers is not what
+the room looked like but who did it. Three constraints produce that shape.
+
+**`image` and `websocket` are the only `n:n` sinks.** They keep one output per
+upstream stream. Every other sink is `1:1` and rejects a multi-stream producer
+outright, so using one would mean composing the room first and throwing away the
+attribution. `segment` is 1:1 deliberately — it would otherwise run a full
+encoder per participant.
+
+**Per-participant audio cannot go through an encoder.** `audio_encoder` is `1:1`,
+so `livekit → audio_encoder` is rejected at submit time, with a hint to insert a
+mixer that is exactly what you are trying to avoid:
+
+```
+component "enc" (type audio_encoder, 1:1) expects single stream input but
+upstream "room" (type livekit, 1:n) produces multiple streams
+```
+
+Audio therefore leaves as PCM, and `audio_resample` — the one `n:n` audio node —
+is what shapes it first.
+
+**That resample is a cost decision as much as a format one.** PCM is billed as
+egress. 48 kHz stereo is ~1.5 Mbit/s per participant against ~0.26 Mbit/s at
+16 kHz mono, and 16 kHz mono is already what speech models want.
+
+Two more things worth knowing:
+
+- **The `image` sink has no webhook.** It uploads to storage and nothing else, so
+  the loop is AVFlow → bucket → bucket event → your service. This demo polls
+  instead of wiring a bucket event, and the newest frame is up to `intervalSec`
+  old. The audio socket is the low-latency half.
+- **Neither sink carries captions.** Routing an `asr` node into `image` is
+  rejected, so the transcription happens in `server/moderation.ts` on the PCM it
+  receives.
+
+Attribution comes from the object key: `prefix` is templated, so
+`moderation/<job>/{identity}` gives each participant their own folder. Note it is
+`prefix` and not `pathPrefix` — an unrecognised key is dropped silently and
+everything lands at the bucket root.
+
+The service AVFlow connects out to is a separate process, because a Next route
+handler cannot accept a WebSocket upgrade:
+
+```bash
+pnpm moderation                                  # ws://localhost:8787
+cloudflared tunnel --url http://localhost:8787   # paste wss:// into MODERATION_WS_URL
+```
+
 ---
 
 ## Credentials
@@ -236,8 +296,11 @@ Read this before deploying anything here.
 - **`/overlay/captions` is unauthenticated** so AVFlow's headless browser can load
   it. In production, sign the URL or restrict it by header — `web_capture`
   supports `setExtraHTTPHeaders`, `cookies`, and `authenticate`.
-- **Storage credentials are sent inside the Job.** The `segment` sink receives your
-  S3 keys; scope them to one bucket and prefix.
+- **Storage credentials are sent inside the Job.** The `segment` and `image` sinks
+  receive your S3 keys; scope them to one bucket and prefix.
+- **The moderation server's auth is a shared bearer token**, and it is optional. It
+  also holds audio and findings in memory, per process. A real one authenticates
+  properly and publishes findings to a queue.
 - **Job names are derived from the room name**, so two people using the same room
   name upsert each other's job. Namespace them per tenant for real use.
 - Submitted Job JSON shown in the UI is redacted server-side
@@ -247,11 +310,14 @@ Read this before deploying anything here.
 ## Layout
 
 ```
+server/
+└── moderation.ts            the WebSocket service AVFlow connects out to
 src/
 ├── app/
 │   ├── api/
 │   │   ├── jobs/            submit (upsert), status, stop
 │   │   ├── meeting-notes/   read the WebVTT from S3, summarise it
+│   │   ├── moderation/      findings from the server, frames from the bucket
 │   │   └── token/           LiveKit tokens for browser participants
 │   ├── overlay/captions/    the 1080x1920 canvas web_capture records
 │   └── <demo>/              one directory per demo
@@ -269,10 +335,11 @@ single function that returns a Job, with the reasoning for its shape in comments
 ## Commands
 
 ```bash
-pnpm dev        # dev server
-pnpm build      # production build
-pnpm lint       # eslint
-pnpm typecheck  # tsc --noEmit
+pnpm dev         # dev server
+pnpm moderation  # the moderation WebSocket service (moderation demo only)
+pnpm build       # production build
+pnpm lint        # eslint
+pnpm typecheck   # tsc --noEmit
 ```
 
 ## Links

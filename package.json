@@ -2,18 +2,20 @@
   "name": "avflow-demos",
   "version": "0.1.0",
   "private": true,
-  "description": "Runnable AVFlow demos: meeting recording with AI notes, TikTok co-host switcher, captioned vertical voice room, live translation, and an AI voice agent.",
+  "description": "Runnable AVFlow demos: meeting recording with AI notes, TikTok co-host switcher, captioned vertical voice room, live translation, an AI voice agent, and per-participant moderation.",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "moderation": "tsx server/moderation.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1111.0",
+    "@aws-sdk/s3-request-presigner": "^3.1111.0",
     "@livekit/components-react": "^2.9.24",
     "@livekit/components-styles": "^1.2.0",
     "livekit-client": "^2.21.0",
@@ -21,16 +23,19 @@
     "next": "^16.3.1",
     "openai": "^7.4.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "ws": "^8.21.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
+    "@types/ws": "^8.18.1",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@10.11.0"

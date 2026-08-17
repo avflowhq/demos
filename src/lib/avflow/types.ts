@@ -104,7 +104,7 @@ export type Layout = {
 };
 
 export type EncodingConfig = {
-  videoCodec?: 'h264' | 'h265' | 'vp8' | 'vp9' | 'av1';
+  videoCodec?: 'h264' | 'vp8' | 'vp9';
   audioCodec?: 'aac' | 'opus';
   audioProfile?: string;
   videoBitrateBps?: number;
@@ -119,13 +119,25 @@ export type S3StorageConfig = {
   accessKeyId?: string;
   secretAccessKey?: string;
   endpoint?: string;
-  pathPrefix?: string;
+  /**
+   * Key prefix. Supports `{identity}`, `{jobName}`, `{date}` and friends, expanded
+   * per object. Not `pathPrefix` — an unrecognised key is dropped without
+   * complaint and every object lands at the bucket root.
+   */
+  prefix?: string;
+  filename?: string;
   forcePathStyle?: boolean;
 };
 
 export type Node =
   | Component<'video_mixer', { canvas: Canvas; layout: Layout }>
   | Component<'audio_mixer', { sampleRate?: number; channels?: number }>
+  /**
+   * The one `n:n` audio node: one output track per input track, same metadata.
+   * `audio_mixer` (n:1) and `audio_encoder` (1:1) both collapse a room into a
+   * single stream, so this is what keeps per-participant audio separate.
+   */
+  | Component<'audio_resample', { sampleRate?: number; channels?: number }>
   /**
    * Omit `provider`/`providerConfig` to use platform-managed credentials.
    * Supplying both switches the node to BYOK; supplying one is rejected.
@@ -177,6 +189,35 @@ export type Sink =
         caption?: { showSpeaker?: boolean };
         encoding?: EncodingConfig;
       }
+    > & { inputs: InputRef[] })
+  /**
+   * Periodic stills to object storage. Video only, `n:n`, and no `encoding` block —
+   * it consumes raw frames, so a `video_encoder` upstream is not accepted. There is
+   * no webhook: it uploads, and you react to the bucket.
+   */
+  | (Component<
+      'image',
+      {
+        storageType: 's3' | 'local' | 'gcp' | 'azure';
+        storageConfig: S3StorageConfig | Record<string, unknown>;
+        format?: 'jpeg' | 'png' | 'webp';
+        /** Capped at 3600 by the engine. */
+        intervalSec?: number;
+        quality?: number;
+        width?: number;
+        height?: number;
+      }
+    > & { inputs: InputRef[] })
+  /**
+   * One WebSocket per input audio track. Audio only — no video, captions, or JSON.
+   * Payloads are binary: interleaved `pcm_s16le` for a raw input, or one access unit
+   * per message behind an `audio_encoder`. Track metadata arrives as handshake
+   * headers (`X-AVFlow-Identity`, `X-AVFlow-Audio-Sample-Rate`, …), not in the
+   * messages.
+   */
+  | (Component<
+      'websocket',
+      { url: string; headers?: Record<string, string>; subprotocols?: string[] }
     > & { inputs: InputRef[] });
 
 export type Policies = {
