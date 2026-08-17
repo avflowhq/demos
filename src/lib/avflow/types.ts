@@ -120,11 +120,10 @@ export type S3StorageConfig = {
   secretAccessKey?: string;
   endpoint?: string;
   /**
-   * Key prefix. Supports `{identity}`, `{jobName}`, `{date}` and friends, expanded
-   * per object. Not `pathPrefix` — an unrecognised key is dropped without
-   * complaint and every object lands at the bucket root.
+   * Object-key prefix. Supports `{identity}`, `{jobName}`, `{date}` and friends,
+   * expanded per object.
    */
-  prefix?: string;
+  pathPrefix?: string;
   filename?: string;
   forcePathStyle?: boolean;
 };

@@ -37,9 +37,9 @@ export async function readTextObject(key: string): Promise<string> {
 }
 
 /**
- * The newest snapshot per participant under an image sink's prefix.
+ * The newest snapshot per participant under an image sink's pathPrefix.
  *
- * The Job templates its prefix as `.../{identity}`, so the folder names are the
+ * The Job templates its pathPrefix as `.../{identity}`, so the folder names are the
  * participants. Polling is what stands in here for the bucket event you would
  * actually wire up: the image sink only uploads, it has no webhook.
  */

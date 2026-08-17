@@ -256,10 +256,8 @@ Two more things worth knowing:
   rejected, so the transcription happens in `server/moderation.ts` on the PCM it
   receives.
 
-Attribution comes from the object key: `prefix` is templated, so
-`moderation/<job>/{identity}` gives each participant their own folder. Note it is
-`prefix` and not `pathPrefix` — an unrecognised key is dropped silently and
-everything lands at the bucket root.
+Attribution comes from the object key: `pathPrefix` is templated, so
+`moderation/<job>/{identity}` gives each participant their own folder.
 
 The service AVFlow connects out to is a separate process, because a Next route
 handler cannot accept a WebSocket upgrade:

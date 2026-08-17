@@ -47,15 +47,13 @@ export function voiceAgentCredentials(): {
 
 export function s3StorageConfig(pathSuffix: string) {
   const s3 = serverEnv.s3();
-  const prefix = [s3.pathPrefix, pathSuffix].filter(Boolean).join('/');
+  const pathPrefix = [s3.pathPrefix, pathSuffix].filter(Boolean).join('/');
   return {
     bucket: s3.bucket,
     region: s3.region,
     accessKeyId: s3.accessKeyId,
     secretAccessKey: s3.secretAccessKey,
     ...(s3.endpoint ? { endpoint: s3.endpoint, forcePathStyle: true } : {}),
-    // The engine reads `prefix`. Sending `pathPrefix` is silently dropped, which
-    // lands every object at the bucket root.
-    ...(prefix ? { prefix } : {}),
+    ...(pathPrefix ? { pathPrefix } : {}),
   };
 }
