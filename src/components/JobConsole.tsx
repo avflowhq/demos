@@ -1,14 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
-import type { JobControl } from '@/hooks/useJob';
-import { Card, CodeBlock, StatusBadge, btnDanger, btnGhost, btnPrimary } from '@/components/ui';
+import type { JobControl } from "@/hooks/useJob";
+import {
+  Card,
+  CodeBlock,
+  StatusBadge,
+  btnDanger,
+  btnGhost,
+  btnPrimary,
+} from "@/components/ui";
 
 export function JobConsole({
   job,
   onStart,
-  startLabel = 'Start job',
+  startLabel = "Start job",
   disabled,
   disabledReason,
   children,
@@ -26,7 +33,9 @@ export function JobConsole({
     <Card className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">AVFlow job</h2>
+          <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">
+            AVFlow job
+          </h2>
           <StatusBadge status={job.status} />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -36,7 +45,7 @@ export function JobConsole({
             onClick={onStart}
             disabled={job.busy || disabled}
           >
-            {job.busy ? 'Working…' : job.isLive ? 'Re-submit' : startLabel}
+            {job.busy ? "Working…" : job.isLive ? "Re-submit" : startLabel}
           </button>
           <button
             type="button"
@@ -62,7 +71,7 @@ export function JobConsole({
       ) : null}
 
       {job.error ? (
-        <p className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm break-words text-red-200">
+        <p className="rounded-lg border border-red-500/30 bg-red-500/5 p-3 text-sm wrap-break-word text-red-200">
           {job.error}
         </p>
       ) : null}
@@ -76,13 +85,14 @@ export function JobConsole({
             className={`${btnGhost} w-full`}
             onClick={() => setShowJson((v) => !v)}
           >
-            {showJson ? 'Hide' : 'Show'} submitted Job JSON
+            {showJson ? "Hide" : "Show"} submitted Job JSON
           </button>
           {showJson ? (
             <>
               <CodeBlock>{JSON.stringify(job.submittedJob, null, 2)}</CodeBlock>
               <p className="text-xs text-muted">
-                Tokens, storage keys, and stream keys are redacted before this reaches the browser.
+                Tokens, storage keys, and stream keys are redacted before this
+                reaches the browser.
               </p>
             </>
           ) : null}

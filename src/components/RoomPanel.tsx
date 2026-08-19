@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import '@livekit/components-styles';
+import "@livekit/components-styles";
 
 import {
   ControlBar,
@@ -9,14 +9,14 @@ import {
   ParticipantTile,
   RoomAudioRenderer,
   useTracks,
-} from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import { useCallback, useState, type ReactNode } from 'react';
+} from "@livekit/components-react";
+import { Track } from "livekit-client";
+import { useCallback, useState, type ReactNode } from "react";
 
-import { Card, btnGhost, btnPrimary } from '@/components/ui';
+import { Card, btnGhost, btnPrimary } from "@/components/ui";
 
 /** AVFlow's own participants (caption carrier, agent voice) are infrastructure, not people. */
-const isBot = (identity: string) => identity.startsWith('avflow-');
+const isBot = (identity: string) => identity.startsWith("avflow-");
 
 function VideoStage() {
   const tracks = useTracks(
@@ -36,7 +36,7 @@ function VideoStage() {
   }
 
   return (
-    <div className="h-[26rem] overflow-hidden rounded-xl border border-line bg-ink">
+    <div className="h-104 overflow-hidden rounded-xl border border-line bg-ink">
       <GridLayout tracks={tracks}>
         <ParticipantTile />
       </GridLayout>
@@ -59,7 +59,10 @@ export function RoomPanel({
   audio?: boolean;
   children?: ReactNode;
 }) {
-  const [creds, setCreds] = useState<{ token: string; serverUrl: string } | null>(null);
+  const [creds, setCreds] = useState<{
+    token: string;
+    serverUrl: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
 
@@ -67,19 +70,23 @@ export function RoomPanel({
     setJoining(true);
     setError(null);
     try {
-      const res = await fetch('/api/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ room, identity, name: displayName ?? identity }),
       });
-      const body = (await res.json()) as { token?: string; serverUrl?: string; error?: string };
+      const body = (await res.json()) as {
+        token?: string;
+        serverUrl?: string;
+        error?: string;
+      };
       if (!res.ok || !body.token || !body.serverUrl) {
         setError(body.error ?? `Could not get a token (${res.status})`);
         return;
       }
       setCreds({ token: body.token, serverUrl: body.serverUrl });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not get a token');
+      setError(err instanceof Error ? err.message : "Could not get a token");
     } finally {
       setJoining(false);
     }
@@ -89,9 +96,11 @@ export function RoomPanel({
     return (
       <Card className="space-y-3">
         <div>
-          <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">Your seat</h2>
+          <h2 className="text-sm font-semibold tracking-wide text-muted uppercase">
+            Your seat
+          </h2>
           <p className="mt-1 text-sm text-muted">
-            Join <span className="font-mono text-slate-300">{room}</span> as{' '}
+            Join <span className="font-mono text-slate-300">{room}</span> as{" "}
             <span className="font-mono text-slate-300">{identity}</span>.
           </p>
         </div>
@@ -100,8 +109,17 @@ export function RoomPanel({
             {error}
           </p>
         ) : null}
-        <button type="button" className={btnPrimary} onClick={() => void join()} disabled={joining}>
-          {joining ? 'Joining…' : audio && !video ? 'Join with mic' : 'Join room'}
+        <button
+          type="button"
+          className={btnPrimary}
+          onClick={() => void join()}
+          disabled={joining}
+        >
+          {joining
+            ? "Joining…"
+            : audio && !video
+              ? "Join with mic"
+              : "Join room"}
         </button>
       </Card>
     );
@@ -131,7 +149,11 @@ export function RoomPanel({
             leave: false,
           }}
         />
-        <button type="button" className={btnGhost} onClick={() => setCreds(null)}>
+        <button
+          type="button"
+          className={btnGhost}
+          onClick={() => setCreds(null)}
+        >
           Leave
         </button>
       </div>
